@@ -87,9 +87,9 @@ public:
 		connect( &m_manager,SIGNAL( finished( QNetworkReply * ) ),
 			 this,SLOT( networkReply( QNetworkReply * ) ),Qt::QueuedConnection ) ;
 	}
-	QNetworkAccessManager * QtNAM()
+	QNetworkAccessManager& QtNAM()
 	{
-		return &m_manager ;
+		return m_manager ;
 	}
 	void get( const QNetworkRequest& r,function_t&& f )
 	{
@@ -185,24 +185,16 @@ private slots:
 	void networkReply( QNetworkReply * r )
 	{
 		auto s = m_entries.size() ;
-		auto e = m_entries.data() ;
 
 		for( decltype( s ) i = 0 ; i < s ; i++ ){
 
-			auto * q = e + i ;
+			const auto& q = m_entries.at( i ) ;
 
-			if( q->first == r ){
+			if( q.first == r ){
 
-				q->second( r ) ;
+				q.second( r ) ;
 
-				if( i < s - 1 ){
-
-					*q = std::move( *( e + s - 1 ) ) ;
-
-					m_entries.removeLast() ;
-				}else{
-					m_entries.remove( i ) ;
-				}
+				m_entries.remove( i ) ;
 
 				break ;
 			}
