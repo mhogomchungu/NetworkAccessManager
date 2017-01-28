@@ -81,27 +81,30 @@ public:
 	};
 
 	using function_t = std::function< void( NetworkAccessManager::NetworkReply ) > ;
-
+#if QT_VERSION < QT_VERSION_CHECK( 5,0,0 )
 	NetworkAccessManager()
 	{
 		connect( &m_manager,SIGNAL( finished( QNetworkReply * ) ),
 			 this,SLOT( networkReply( QNetworkReply * ) ),Qt::QueuedConnection ) ;
 	}
+#else
+	NetworkAccessManager()
+	{
+		connect( &m_manager,&QNetworkAccessManager::finished,
+		         this,&NetworkAccessManager::networkReply,Qt::QueuedConnection ) ;
+	}
+#endif
 	QNetworkAccessManager& QtNAM()
 	{
 		return m_manager ;
 	}
-	void get( const QNetworkRequest& r,function_t&& f )
+	QNetworkReply * get( const QNetworkRequest& r,function_t&& f )
 	{
-		m_entries.append( { m_manager.get( r ),std::move( f ) } ) ;
-	}
-	void get( const QNetworkRequest& r,QNetworkReply ** e,function_t&& f )
-	{
-		auto q = m_manager.get( r ) ;
+		auto e = m_manager.get( r ) ;
 
-		*e = q ;
+		m_entries.append( { e,std::move( f ) } ) ;
 
-		m_entries.append( { q,std::move( f ) } ) ;
+		return e ;
 	}
 	QNetworkReply * get( const QNetworkRequest& r )
 	{
@@ -121,18 +124,13 @@ public:
 		return q ;
 	}
 	template< typename T >
-	void post( const QNetworkRequest& r,const T& e,function_t&& f )
-	{
-		m_entries.append( { m_manager.post( r,e ),std::move( f ) } ) ;
-	}
-	template< typename T >
-	void post( const QNetworkRequest& r,const T& e,QNetworkReply ** z,function_t&& f )
+	QNetworkReply * post( const QNetworkRequest& r,const T& e,function_t&& f )
 	{
 		auto q = m_manager.post( r,e ) ;
 
-		*z = q ;
-
 		m_entries.append( { q,std::move( f ) } ) ;
+
+		return q ;
 	}
 	template< typename T >
 	QNetworkReply * post( const QNetworkRequest& r,const T& e )
@@ -152,17 +150,13 @@ public:
 
 		return q ;
 	}
-	void head( const QNetworkRequest& r,function_t&& f )
+	QNetworkReply * head( const QNetworkRequest& r,function_t&& f )
 	{
-		m_entries.append( { m_manager.head( r ),std::move( f ) } ) ;
-	}
-	void head( const QNetworkRequest& r,QNetworkReply ** e,function_t&& f )
-	{
-		auto q = m_manager.head( r ) ;
+		auto e = m_manager.head( r ) ;
 
-		*e = q ;
+		m_entries.append( { e,std::move( f ) } ) ;
 
-		m_entries.append( { q,std::move( f ) } ) ;
+		return e ;
 	}
 	QNetworkReply * head( const QNetworkRequest& r )
 	{

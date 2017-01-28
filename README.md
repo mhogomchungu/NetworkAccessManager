@@ -5,10 +5,25 @@ This single header library "modernizes" QNetworkAccessManager by
 adding modern C++ features to it.
 
 An understanding of how QNetworkAccessManager works is required because
-this library is thin wrapper to it.
+this library is a thin wrapper to it.
 
-Example use case of the library are below:
+Example below shows an example of how to process a network response asynchronously
+using a lambda.
 
-https://github.com/mhogomchungu/zuluCrypt/blob/36ca4bb05f1488104f3a3693dc1c0d9bfc0570e4/zuluCrypt-gui/checkforupdates.cpp#L33
+```
+void foo::bar()
+{
+	QNetworkRequest networRequest( QUrl( "https://foo.com" ) ) ;
 
-https://github.com/mhogomchungu/qCheckGMail/blob/e32425a72156acb68c594b80ea7ba9fcc96a218d/src/qcheckgmail.cpp#L818
+	networRequest.setRawHeader( "Host","foo.com" ) ;
+	networRequest.setRawHeader( "Accept-Encoding","text/plain" ) ;
+
+	m_networkAccessManager.get( networRequest,[ this ]( NetworkAccessManager::NetworkReply e ){
+
+		QByteArray result = e->readAll() ;
+
+		this->processResult( result ) ;
+	} ) ;
+}
+
+```
