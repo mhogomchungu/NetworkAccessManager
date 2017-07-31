@@ -68,6 +68,10 @@ public:
 			m_QNetworkReply = nullptr ;
 			return e ;
 		}
+		QNetworkReply& handle()
+		{
+			return *m_QNetworkReply ;
+		}
 		~NetworkReply()
 		{
 			if( m_QNetworkReply ){
